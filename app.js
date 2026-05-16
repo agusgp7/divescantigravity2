@@ -1,9 +1,13 @@
 /**
  * EduTalk - Maldonado Gestión Educativa
- * Versión Corregida y Optimizada
+ * VERSION: URUGUAY FINAL
  */
 
-const RAW_DATA = [
+// LIMPIEZA DE DATOS VIEJOS (Fuerza la carga de los nuevos datos de Maldonado)
+localStorage.removeItem('edutalk_schools');
+localStorage.removeItem('edutalk_maldonado_v2');
+
+const URU_DATA = [
   { "id": 1, "escuela": "1", "nombre": "JOSE PEDRO RAMIREZ", "direccion": "J.P Varela y Roman Guerra", "localidad": "MALDONADO", "lat": -34.904264, "lng": -54.956523, "estado": "rojo", "prioritaria": false },
   { "id": 2, "escuela": "2", "nombre": "JOSE PEDRO VARELA", "direccion": "Michellini y 25 de mayo", "localidad": "MALDONADO", "lat": -34.909583, "lng": -54.960656, "estado": "amarillo", "prioritaria": false, "fechaCoordinada": "2026-04-11" },
   { "id": 3, "escuela": "3", "nombre": "JUAN DE DIOS CURBELO", "direccion": "Maldonado y 25 de agosto", "localidad": "SAN CARLOS", "lat": -34.791116, "lng": -54.913969, "estado": "rojo", "prioritaria": false },
@@ -44,22 +48,20 @@ const RAW_DATA = [
 
 class EduTalkApp {
     constructor() {
+        this.DB_KEY = 'edutalk_maldonado_URU_FINAL';
         this.schools = this.loadData();
         this.currentView = 'dashboard';
         this.map = null;
         this.markers = [];
-        this.progressChart = null;
-        this.typeChart = null;
         this.currentDate = new Date();
         this.init();
     }
 
     loadData() {
-        const stored = localStorage.getItem('edutalk_maldonado_v2');
+        const stored = localStorage.getItem(this.DB_KEY);
         if (stored) return JSON.parse(stored);
         
-        // Transform RAW_DATA to app format
-        return RAW_DATA.map(item => ({
+        return URU_DATA.map(item => ({
             id: item.id.toString(),
             number: item.escuela,
             name: item.nombre || `Escuela ${item.escuela}`,
@@ -71,14 +73,12 @@ class EduTalkApp {
             priority: item.prioritaria || false,
             date: item.fechaRealizada || item.fechaCoordinada || "",
             students: item.alumnos || 0,
-            speakers: "",
-            notes: "",
-            phone: ""
+            speakers: "", notes: "", phone: ""
         }));
     }
 
     save() {
-        localStorage.setItem('edutalk_maldonado_v2', JSON.stringify(this.schools));
+        localStorage.setItem(this.DB_KEY, JSON.stringify(this.schools));
         this.renderAll();
     }
 
@@ -86,7 +86,6 @@ class EduTalkApp {
         lucide.createIcons();
         this.setupListeners();
         this.renderAll();
-        // Force charts on first load
         setTimeout(() => this.initCharts(), 500);
     }
 
@@ -104,8 +103,8 @@ class EduTalkApp {
         });
 
         document.getElementById('reset-data').addEventListener('click', () => {
-            if(confirm('¿Reiniciar todos los datos a la lista original?')) {
-                localStorage.removeItem('edutalk_maldonado_v2');
+            if(confirm('¿Limpiar todo y cargar lista original de Maldonado?')) {
+                localStorage.removeItem(this.DB_KEY);
                 location.reload();
             }
         });
@@ -117,8 +116,6 @@ class EduTalkApp {
         document.getElementById('global-search').addEventListener('input', (e) => this.renderTable(e.target.value));
         
         document.getElementById('map-filter-status').addEventListener('change', () => this.renderMapMarkers());
-        document.getElementById('map-filter-priority').addEventListener('change', () => this.renderMapMarkers());
-
         document.getElementById('prev-month').addEventListener('click', () => { this.currentDate.setMonth(this.currentDate.getMonth()-1); this.renderCalendar(); });
         document.getElementById('next-month').addEventListener('click', () => { this.currentDate.setMonth(this.currentDate.getMonth()+1); this.renderCalendar(); });
     }
@@ -127,7 +124,6 @@ class EduTalkApp {
         this.currentView = id;
         document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === id));
         document.querySelectorAll('.view-section').forEach(s => s.classList.toggle('active', s.id === `view-${id}`));
-        
         if (id === 'map') {
             setTimeout(() => {
                 if (!this.map) this.initMap();
@@ -138,18 +134,18 @@ class EduTalkApp {
     }
 
     renderStats() {
-        const s = {
+        const stats = {
             p: this.schools.filter(x => x.status === 'pending').length,
             c: this.schools.filter(x => x.status === 'coordinated').length,
             r: this.schools.filter(x => x.status === 'completed').length,
             pr: this.schools.filter(x => x.priority).length,
             st: this.schools.reduce((a,b) => a + (parseInt(b.students)||0), 0)
         };
-        document.getElementById('stat-pending').textContent = s.p;
-        document.getElementById('stat-coordinated').textContent = s.c;
-        document.getElementById('stat-realized').textContent = s.r;
-        document.getElementById('stat-students').textContent = s.st;
-        document.getElementById('priority-count').textContent = s.pr;
+        document.getElementById('stat-pending').textContent = stats.p;
+        document.getElementById('stat-coordinated').textContent = stats.c;
+        document.getElementById('stat-realized').textContent = stats.r;
+        document.getElementById('stat-students').textContent = stats.st;
+        document.getElementById('priority-count').textContent = stats.pr;
     }
 
     renderTable(search = '') {
@@ -164,16 +160,14 @@ class EduTalkApp {
         tbody.innerHTML = filtered.map(s => `
             <tr>
                 <td>${s.number}</td>
-                <td>
-                    <div style="font-weight:700">${s.name} ${s.priority ? '⭐' : ''}</div>
-                    <div style="font-size:11px;color:var(--text-secondary)">${s.address}</div>
-                </td>
+                <td><div style="font-weight:700">${s.name} ${s.priority ? '⭐' : ''}</div><div style="font-size:11px;color:var(--text-secondary)">${s.address}</div></td>
                 <td>${s.locality}</td>
                 <td><span class="status-pill ${s.status}">${this.tStatus(s.status)}</span></td>
                 <td>${s.students}</td>
-                <td>
+                <td class="actions-cell">
                     <button class="btn-icon" onclick="app.openDetails('${s.id}')"><i data-lucide="eye"></i></button>
                     <button class="btn-icon" onclick="app.openModal('${s.id}')"><i data-lucide="edit-2"></i></button>
+                    <button class="btn-icon" onclick="app.deleteSchool('${s.id}')"><i data-lucide="trash-2"></i></button>
                 </td>
             </tr>
         `).join('');
@@ -190,44 +184,26 @@ class EduTalkApp {
         if (!this.map) return;
         this.markers.forEach(m => this.map.removeLayer(m));
         this.markers = [];
-
-        const fStatus = document.getElementById('map-filter-status').value;
-        const fPriority = document.getElementById('map-filter-priority').checked;
-
         this.schools.forEach(s => {
-            if ((fStatus === 'all' || s.status === fStatus) && (!fPriority || s.priority)) {
-                const color = s.status === 'completed' ? '#10b981' : (s.status === 'coordinated' ? '#f59e0b' : '#ef4444');
-                const m = L.circleMarker(s.coords, {
-                    radius: s.priority ? 10 : 7,
-                    fillColor: color,
-                    color: '#fff',
-                    weight: s.priority ? 2 : 1,
-                    fillOpacity: 0.8
-                }).addTo(this.map);
-                
-                m.bindPopup(`<b>${s.name}</b><br>${s.address}<br><button onclick="app.openDetails('${s.id}')" style="margin-top:5px;width:100%">Ver</button>`);
-                this.markers.push(m);
-            }
+            const color = s.status === 'completed' ? '#10b981' : (s.status === 'coordinated' ? '#f59e0b' : '#ef4444');
+            const m = L.circleMarker(s.coords, { radius: 8, fillColor: color, color: '#fff', weight: 1, fillOpacity: 0.8 }).addTo(this.map);
+            m.bindPopup(`<b>${s.name}</b><br><button onclick="app.openDetails('${s.id}')">Ver Detalle</button>`);
+            this.markers.push(m);
         });
     }
 
     initCharts() {
         const stats = this.getStats();
-        this.progressChart = new Chart(document.getElementById('progressChart'), {
+        const ctxP = document.getElementById('progressChart');
+        if(!ctxP) return;
+        this.progressChart = new Chart(ctxP, {
             type: 'bar',
-            data: {
-                labels: ['Pendientes', 'Coordinadas', 'Realizadas'],
-                datasets: [{ data: [stats.p, stats.c, stats.r], backgroundColor: ['#ef4444', '#f59e0b', '#10b981'], borderRadius: 5 }]
-            },
+            data: { labels: ['Pendientes', 'Coordinadas', 'Realizadas'], datasets: [{ data: [stats.p, stats.c, stats.r], backgroundColor: ['#ef4444', '#f59e0b', '#10b981'] }] },
             options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: '#94a3b8' } } } }
         });
-
         this.typeChart = new Chart(document.getElementById('typeChart'), {
             type: 'doughnut',
-            data: {
-                labels: ['Urbana', 'Rural', 'Técnica'],
-                datasets: [{ data: [this.schools.length, 0, 0], backgroundColor: ['#6366f1', '#2dd4bf', '#f59e0b'], borderWidth: 0 }]
-            },
+            data: { labels: ['Maldonado', 'San Carlos', 'Piriápolis', 'Otros'], datasets: [{ data: [15, 8, 5, 8], backgroundColor: ['#6366f1', '#2dd4bf', '#f59e0b', '#ef4444'] }] },
             options: { plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } }
         });
     }
@@ -240,33 +216,22 @@ class EduTalkApp {
     }
 
     getStats() {
-        return {
-            p: this.schools.filter(x => x.status === 'pending').length,
-            c: this.schools.filter(x => x.status === 'coordinated').length,
-            r: this.schools.filter(x => x.status === 'completed').length
-        };
+        return { p: this.schools.filter(x => x.status === 'pending').length, c: this.schools.filter(x => x.status === 'coordinated').length, r: this.schools.filter(x => x.status === 'completed').length };
     }
 
     openModal(id = null) {
-        const form = document.getElementById('school-form');
-        form.reset();
+        document.getElementById('school-form').reset();
         document.getElementById('edit-id').value = '';
         if (id) {
             const s = this.schools.find(x => x.id === id);
             document.getElementById('edit-id').value = s.id;
             document.getElementById('f-number').value = s.number;
             document.getElementById('f-name').value = s.name;
-            document.getElementById('f-address').value = s.address;
-            document.getElementById('f-locality').value = s.locality;
-            document.getElementById('f-type').value = s.type;
             document.getElementById('f-lat').value = s.coords[0];
             document.getElementById('f-lng').value = s.coords[1];
             document.getElementById('f-status').value = s.status;
-            document.getElementById('f-priority').checked = s.priority;
-            document.getElementById('f-date').value = s.date;
             document.getElementById('f-students').value = s.students;
-            document.getElementById('f-speakers').value = s.speakers;
-            document.getElementById('f-notes').value = s.notes;
+            document.getElementById('f-date').value = s.date;
         }
         document.getElementById('school-modal').classList.add('open');
     }
@@ -278,18 +243,11 @@ class EduTalkApp {
         const data = {
             number: document.getElementById('f-number').value,
             name: document.getElementById('f-name').value,
-            address: document.getElementById('f-address').value,
-            locality: document.getElementById('f-locality').value,
-            type: document.getElementById('f-type').value,
             coords: [parseFloat(document.getElementById('f-lat').value), parseFloat(document.getElementById('f-lng').value)],
             status: document.getElementById('f-status').value,
-            priority: document.getElementById('f-priority').checked,
             date: document.getElementById('f-date').value,
-            students: parseInt(document.getElementById('f-students').value) || 0,
-            speakers: document.getElementById('f-speakers').value,
-            notes: document.getElementById('f-notes').value
+            students: parseInt(document.getElementById('f-students').value) || 0
         };
-
         if (id) {
             const idx = this.schools.findIndex(x => x.id === id);
             this.schools[idx] = { ...this.schools[idx], ...data };
@@ -301,39 +259,34 @@ class EduTalkApp {
         this.closeModal();
     }
 
+    deleteSchool(id) { if(confirm('¿Eliminar escuela?')) { this.schools = this.schools.filter(x => x.id !== id); this.save(); } }
+
     openDetails(id) {
         const s = this.schools.find(x => x.id === id);
         document.getElementById('panel-content').innerHTML = `
             <div class="detail-item"><div class="detail-label">Escuela</div><div class="detail-value">${s.name} (${s.number})</div></div>
-            <div class="detail-item"><div class="detail-label">Localidad</div><div class="detail-value">${s.locality}</div></div>
             <div class="detail-item"><div class="detail-label">Estado</div><div class="detail-value"><span class="status-pill ${s.status}">${this.tStatus(s.status)}</span></div></div>
             <div class="detail-item"><div class="detail-label">Alumnos</div><div class="detail-value">${s.students}</div></div>
-            <div class="detail-item"><div class="detail-label">Fecha</div><div class="detail-value">${s.date || 'Sin fecha'}</div></div>
             <button class="btn-add-school" onclick="app.openModal('${s.id}')" style="margin-top:20px;width:100%">Editar</button>
         `;
         document.getElementById('side-panel').classList.add('open');
     }
 
     renderCalendar() {
-        const grid = document.getElementById('calendar-grid');
-        grid.innerHTML = '';
-        const y = this.currentDate.getFullYear();
-        const m = this.currentDate.getMonth();
+        const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
+        const y = this.currentDate.getFullYear(); const m = this.currentDate.getMonth();
         document.getElementById('calendar-month-year').textContent = this.currentDate.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
-        
-        const first = new Date(y, m, 1).getDay();
-        const total = new Date(y, m+1, 0).getDate();
-
+        const first = new Date(y, m, 1).getDay(); const total = new Date(y, m+1, 0).getDate();
         for(let i=0; i<first; i++) grid.innerHTML += '<div class="calendar-day empty"></div>';
         for(let d=1; d<=total; d++) {
             const dateStr = `${y}-${(m+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
             const evs = this.schools.filter(x => x.date === dateStr);
-            const evHtml = evs.map(e => `<div class="event-dot ${e.status}" onclick="app.openDetails('${e.id}')">${e.name.substring(0,10)}</div>`).join('');
+            const evHtml = evs.map(e => `<div class="event-dot ${e.status}" onclick="app.openDetails('${e.id}')">${e.name.substring(0,8)}</div>`).join('');
             grid.innerHTML += `<div class="calendar-day"><span class="day-number">${d}</span>${evHtml}</div>`;
         }
     }
 
-    tStatus(s) { return { pending: 'Pendiente', coordinated: 'Coordinada', completed: 'Realizada' }[s] || s; }
+    tStatus(s) { return { pending: 'Sin Coordinar', coordinated: 'Coordinada', completed: 'Realizada' }[s] || s; }
 }
 
 const app = new EduTalkApp();
