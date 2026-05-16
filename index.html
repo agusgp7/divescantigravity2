@@ -3,232 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduTalk | Gestión Maldonado</title>
-    
-    <!-- Fonts -->
+    <title>EduTalk | Uruguay - Maldonado</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <!-- CSS Propio -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body class="dark-theme">
     <div class="app-container">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="logo">
                 <div class="logo-icon"><i data-lucide="zap"></i></div>
                 <span>Edu<span>Talk</span></span>
             </div>
-            
             <nav class="nav-menu">
-                <button class="nav-item active" data-view="dashboard">
-                    <i data-lucide="layout-dashboard"></i><span>Dashboard</span>
-                </button>
-                <button class="nav-item" data-view="map">
-                    <i data-lucide="map"></i><span>Mapa Escolar</span>
-                </button>
-                <button class="nav-item" data-view="list">
-                    <i data-lucide="list"></i><span>Planilla</span>
-                </button>
-                <button class="nav-item" data-view="calendar">
-                    <i data-lucide="calendar"></i><span>Calendario</span>
-                </button>
+                <button class="nav-item active" data-view="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></button>
+                <button class="nav-item" data-view="map"><i data-lucide="map"></i><span>Mapa Escolar</span></button>
+                <button class="nav-item" data-view="list"><i data-lucide="list"></i><span>Planilla</span></button>
+                <button class="nav-item" data-view="calendar"><i data-lucide="calendar"></i><span>Calendario</span></button>
             </nav>
-
             <div class="sidebar-footer">
-                <button class="btn-add-school" id="open-add-modal">
-                    <i data-lucide="plus"></i><span>Nueva Escuela</span>
-                </button>
-                <button class="btn-reset" id="reset-data" title="Reiniciar base de datos">
-                    <i data-lucide="refresh-cw"></i>
-                </button>
+                <button class="btn-add-school" id="open-add-modal"><i data-lucide="plus"></i><span>Nueva Escuela</span></button>
+                <button class="btn-reset" id="reset-data" title="Limpiar y Reiniciar Datos"><i data-lucide="trash-2"></i></button>
             </div>
         </aside>
 
-        <!-- Main -->
         <main class="main-content">
             <header class="top-header">
                 <div class="header-search">
                     <i data-lucide="search"></i>
-                    <input type="text" id="global-search" placeholder="Buscar escuela, localidad o número...">
+                    <input type="text" id="global-search" placeholder="Buscar en Maldonado...">
                 </div>
                 <div class="header-actions">
-                    <div class="stat-badge priority">
-                        <span id="priority-count">0</span> Prioritarias
-                    </div>
+                    <div class="stat-badge priority"><span id="priority-count">0</span> Prioritarias</div>
                     <div class="user-profile">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Agus" alt="Avatar">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Maldonado" alt="Avatar">
                         <div class="user-info">
                             <span class="user-name">Coordinador Maldonado</span>
-                            <span class="user-role">Administrador</span>
+                            <span class="user-role">Admin Uruguay</span>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <!-- Dashboard -->
             <section id="view-dashboard" class="view-section active">
-                <div class="welcome-banner">
-                    <h1>Maldonado: Avance 2026</h1>
-                    <p>Gestión de charlas de energía y consumo responsable.</p>
-                </div>
-                
+                <div class="welcome-banner"><h1>Maldonado: Gestión Educativa</h1><p>Panel de control de charlas y estadísticas regionales.</p></div>
                 <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon pending"><i data-lucide="clock"></i></div>
-                        <div class="stat-data"><h3 id="stat-pending">0</h3><p>Sin Coordinar</p></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon coordinated"><i data-lucide="calendar"></i></div>
-                        <div class="stat-data"><h3 id="stat-coordinated">0</h3><p>Coordinadas</p></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon realized"><i data-lucide="check-circle"></i></div>
-                        <div class="stat-data"><h3 id="stat-realized">0</h3><p>Realizadas</p></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon students"><i data-lucide="users"></i></div>
-                        <div class="stat-data"><h3 id="stat-students">0</h3><p>Alumnos</p></div>
-                    </div>
+                    <div class="stat-card"><div class="stat-icon pending"><i data-lucide="clock"></i></div><div class="stat-data"><h3 id="stat-pending">0</h3><p>Pendientes</p></div></div>
+                    <div class="stat-card"><div class="stat-icon coordinated"><div class="dot-yellow"></div><i data-lucide="calendar"></i></div><div class="stat-data"><h3 id="stat-coordinated">0</h3><p>Coordinadas</p></div></div>
+                    <div class="stat-card"><div class="stat-icon realized"><i data-lucide="check-circle"></i></div><div class="stat-data"><h3 id="stat-realized">0</h3><p>Realizadas</p></div></div>
+                    <div class="stat-card"><div class="stat-icon students"><i data-lucide="users"></i></div><div class="stat-data"><h3 id="stat-students">0</h3><p>Alumnos</p></div></div>
                 </div>
-
                 <div class="dashboard-charts">
-                    <div class="chart-container glass">
-                        <h3>Estado de Gestión</h3>
-                        <canvas id="progressChart"></canvas>
-                    </div>
-                    <div class="chart-container glass">
-                        <h3>Tipos de Centros</h3>
-                        <canvas id="typeChart"></canvas>
-                    </div>
+                    <div class="chart-container glass"><h3>Avance de Gestión</h3><canvas id="progressChart"></canvas></div>
+                    <div class="chart-container glass"><h3>Distribución</h3><canvas id="typeChart"></canvas></div>
                 </div>
             </section>
 
-            <!-- Map -->
-            <section id="view-map" class="view-section">
-                <div class="map-controls glass">
-                    <select id="map-filter-status">
-                        <option value="all">Todos los estados</option>
-                        <option value="pending">Sin Coordinar (Rojo)</option>
-                        <option value="coordinated">Coordinada (Amarillo)</option>
-                        <option value="completed">Realizada (Verde)</option>
-                    </select>
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="map-filter-priority"> Solo Prioritarias
-                    </label>
-                </div>
-                <div id="map-container"></div>
-            </section>
+            <section id="view-map" class="view-section"><div class="map-controls glass"><select id="map-filter-status"><option value="all">Todos</option><option value="pending">Sin Coordinar</option><option value="coordinated">Coordinadas</option><option value="completed">Realizadas</option></select></div><div id="map-container"></div></section>
 
-            <!-- List -->
             <section id="view-list" class="view-section">
-                <div class="list-header">
-                    <h2>Base de Datos</h2>
-                </div>
+                <div class="list-header"><h2>Escuelas en Maldonado</h2></div>
                 <div class="table-container glass">
                     <table id="schools-table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Escuela</th>
-                                <th>Localidad</th>
-                                <th>Estado</th>
-                                <th>Alumnos</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>#</th><th>Nombre de la Escuela</th><th>Localidad</th><th>Estado</th><th>Alumnos</th><th>Acciones</th></tr></thead>
                         <tbody id="schools-body"></tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- Calendar -->
             <section id="view-calendar" class="view-section">
-                <div class="calendar-header">
-                    <h2 id="calendar-month-year">Mayo 2026</h2>
-                    <div class="calendar-nav">
-                        <button id="prev-month"><i data-lucide="chevron-left"></i></button>
-                        <button id="next-month"><i data-lucide="chevron-right"></i></button>
-                    </div>
-                </div>
-                <div class="calendar-wrapper glass">
-                    <div class="calendar-days">
-                        <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
-                    </div>
-                    <div id="calendar-grid" class="calendar-grid"></div>
-                </div>
+                <div class="calendar-header"><h2 id="calendar-month-year">...</h2><div class="calendar-nav"><button id="prev-month"><i data-lucide="chevron-left"></i></button><button id="next-month"><i data-lucide="chevron-right"></i></button></div></div>
+                <div class="calendar-wrapper glass"><div class="calendar-days"><span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span></div><div id="calendar-grid" class="calendar-grid"></div></div>
             </section>
         </main>
 
-        <!-- Side Panel -->
         <aside id="side-panel" class="side-panel">
-            <div class="panel-header">
-                <h2 id="panel-title">Detalle</h2>
-                <button id="close-panel" class="btn-close"><i data-lucide="x"></i></button>
-            </div>
+            <div class="panel-header"><h2 id="panel-title">Ficha Escolar</h2><button id="close-panel" class="btn-close"><i data-lucide="x"></i></button></div>
             <div id="panel-content" class="panel-body"></div>
         </aside>
 
-        <!-- Modal -->
         <div id="school-modal" class="modal-overlay">
             <div class="modal-content glass">
-                <div class="modal-header">
-                    <h2 id="modal-title">Escuela</h2>
-                    <button class="close-modal"><i data-lucide="x"></i></button>
-                </div>
+                <div class="modal-header"><h2 id="modal-title">Formulario</h2><button class="close-modal"><i data-lucide="x"></i></button></div>
                 <form id="school-form" class="school-form">
                     <input type="hidden" id="edit-id">
+                    <div class="form-row"><div class="form-group"><label>Número</label><input type="text" id="f-number" required></div><div class="form-group"><label>Nombre</label><input type="text" id="f-name" required></div></div>
+                    <div class="form-row"><div class="form-group"><label>Latitud</label><input type="number" step="any" id="f-lat" required></div><div class="form-group"><label>Longitud</label><input type="number" step="any" id="f-lng" required></div></div>
                     <div class="form-row">
-                        <div class="form-group"><label>Número</label><input type="text" id="f-number" required></div>
-                        <div class="form-group"><label>Nombre</label><input type="text" id="f-name" required></div>
-                    </div>
-                    <div class="form-group"><label>Dirección</label><input type="text" id="f-address"></div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Localidad</label><input type="text" id="f-locality"></div>
-                        <div class="form-group"><label>Tipo</label><input type="text" id="f-type"></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Latitud</label><input type="number" step="any" id="f-lat" required></div>
-                        <div class="form-group"><label>Longitud</label><input type="number" step="any" id="f-lng" required></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Estado</label>
-                            <select id="f-status">
-                                <option value="pending">Sin Coordinar (Rojo)</option>
-                                <option value="coordinated">Coordinada (Amarillo)</option>
-                                <option value="completed">Realizada (Verde)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>¿Prioritaria?</label>
-                            <input type="checkbox" id="f-priority">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Fecha</label><input type="date" id="f-date"></div>
+                        <div class="form-group"><label>Estado</label><select id="f-status"><option value="pending">Sin Coordinar</option><option value="coordinated">Coordinada</option><option value="completed">Realizada</option></select></div>
                         <div class="form-group"><label>Alumnos</label><input type="number" id="f-students"></div>
                     </div>
-                    <div class="form-group"><label>Charlistas</label><input type="text" id="f-speakers"></div>
-                    <div class="form-group"><label>Observaciones</label><textarea id="f-notes"></textarea></div>
-                    <div class="form-actions">
-                        <button type="button" class="btn-cancel close-modal">Cancelar</button>
-                        <button type="submit" class="btn-save">Guardar</button>
-                    </div>
+                    <div class="form-group"><label>Fecha</label><input type="date" id="f-date"></div>
+                    <div class="form-actions"><button type="button" class="btn-cancel close-modal">Cerrar</button><button type="submit" class="btn-save">Guardar Cambios</button></div>
                 </form>
             </div>
         </div>
     </div>
-
-    <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="app.js"></script>
+    <script src="app.js?v=final_maldonado"></script>
 </body>
 </html>
