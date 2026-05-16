@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduTalk | Gestión de Charlas Educativas</title>
+    <meta name="description" content="Plataforma moderna para la gestión y coordinación de charlas educativas en escuelas.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i data-lucide="zap"></i>
+                </div>
+                <span>Edu<span>Talk</span></span>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-item active" data-view="dashboard" id="nav-dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" data-view="map" id="nav-map">
+                    <i data-lucide="map"></i>
+                    <span>Mapa Escolar</span>
+                </button>
+                <button class="nav-item" data-view="list" id="nav-list">
+                    <i data-lucide="list"></i>
+                    <span>Planilla</span>
+                </button>
+                <button class="nav-item" data-view="calendar" id="nav-calendar">
+                    <i data-lucide="calendar"></i>
+                    <span>Calendario</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="btn-add-school" id="open-add-modal">
+                    <i data-lucide="plus"></i>
+                    <span>Nueva Escuela</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-header">
+                <div class="header-search">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="global-search" placeholder="Buscar escuelas, localidades...">
+                </div>
+                <div class="header-actions">
+                    <div class="stat-badge priority">
+                        <span id="priority-count">0</span> Prioritarias
+                    </div>
+                    <div class="user-profile">
+                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Agus" alt="Avatar">
+                        <div class="user-info">
+                            <span class="user-name">Agus Coordinador</span>
+                            <span class="user-role">Admin</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- View Containers -->
+            <section id="view-dashboard" class="view-section active">
+                <div class="welcome-banner">
+                    <h1>Resumen Anual 2026</h1>
+                    <p>Seguimiento de impacto en centros educativos.</p>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon pending"><i data-lucide="clock"></i></div>
+                        <div class="stat-data">
+                            <h3 id="stat-pending">0</h3>
+                            <p>Pendientes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon coordinated"><i data-lucide="calendar-check"></i></div>
+                        <div class="stat-data">
+                            <h3 id="stat-coordinated">0</h3>
+                            <p>Coordinadas</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon realized"><i data-lucide="check-circle"></i></div>
+                        <div class="stat-data">
+                            <h3 id="stat-realized">0</h3>
+                            <p>Realizadas</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon students"><i data-lucide="users"></i></div>
+                        <div class="stat-data">
+                            <h3 id="stat-students">0</h3>
+                            <p>Alumnos Alcanzados</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-charts">
+                    <div class="chart-container glass">
+                        <h3>Progreso de Objetivos</h3>
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                    <div class="chart-container glass">
+                        <h3>Distribución por Tipo</h3>
+                        <canvas id="typeChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="view-map" class="view-section">
+                <div class="map-controls glass">
+                    <div class="filter-group">
+                        <label>Estado:</label>
+                        <select id="map-filter-status">
+                            <option value="all">Todos</option>
+                            <option value="pending">Sin Coordinar</option>
+                            <option value="coordinated">Coordinada</option>
+                            <option value="completed">Realizada</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label><input type="checkbox" id="map-filter-priority"> Solo Prioritarios</label>
+                    </div>
+                </div>
+                <div id="map-container"></div>
+            </section>
+
+            <section id="view-list" class="view-section">
+                <div class="list-header">
+                    <h2>Base de Datos de Escuelas</h2>
+                    <div class="list-actions">
+                        <button class="btn-secondary" id="export-csv"><i data-lucide="download"></i> Exportar</button>
+                    </div>
+                </div>
+                <div class="table-container glass">
+                    <table id="schools-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Escuela</th>
+                                <th>Localidad</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="schools-body">
+                            <!-- Rows dynamic -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="view-calendar" class="view-section">
+                <div class="calendar-header">
+                    <h2 id="calendar-month-year">Mayo 2026</h2>
+                    <div class="calendar-nav">
+                        <button id="prev-month"><i data-lucide="chevron-left"></i></button>
+                        <button id="next-month"><i data-lucide="chevron-right"></i></button>
+                    </div>
+                </div>
+                <div class="calendar-wrapper glass">
+                    <div class="calendar-days">
+                        <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+                    </div>
+                    <div id="calendar-grid" class="calendar-grid"></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Right Side Panel (Detail / Edit) -->
+        <aside id="side-panel" class="side-panel">
+            <div class="panel-header">
+                <h2 id="panel-title">Detalle de Escuela</h2>
+                <button id="close-panel" class="btn-close"><i data-lucide="x"></i></button>
+            </div>
+            <div id="panel-content" class="panel-body">
+                <!-- Content dynamic -->
+            </div>
+        </aside>
+
+        <!-- Modals -->
+        <div id="school-modal" class="modal-overlay">
+            <div class="modal-content glass">
+                <div class="modal-header">
+                    <h2 id="modal-title">Agregar Nueva Escuela</h2>
+                    <button class="close-modal"><i data-lucide="x"></i></button>
+                </div>
+                <form id="school-form" class="school-form">
+                    <input type="hidden" id="edit-id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="f-number">Número/ID</label>
+                            <input type="text" id="f-number" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="f-name">Nombre</label>
+                            <input type="text" id="f-name" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="f-address">Dirección</label>
+                        <input type="text" id="f-address" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="f-locality">Localidad</label>
+                            <input type="text" id="f-locality" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="f-type">Tipo</label>
+                            <select id="f-type">
+                                <option value="Primaria">Primaria</option>
+                                <option value="Secundaria">Secundaria</option>
+                                <option value="Técnica">Técnica</option>
+                                <option value="Rural">Rural</option>
+                                <option value="Especial">Especial</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="f-lat">Latitud</label>
+                            <input type="number" step="any" id="f-lat" placeholder="-34.6..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="f-lng">Longitud</label>
+                            <input type="number" step="any" id="f-lng" placeholder="-58.4..." required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="f-status">Estado</label>
+                            <select id="f-status">
+                                <option value="pending">Pendiente</option>
+                                <option value="coordinated">Coordinada</option>
+                                <option value="completed">Realizada</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="f-priority">¿Es Prioritaria?</label>
+                            <div class="toggle-container">
+                                <input type="checkbox" id="f-priority">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="f-date">Fecha de Charla</label>
+                            <input type="date" id="f-date">
+                        </div>
+                        <div class="form-group">
+                            <label for="f-students">Cant. Alumnos</label>
+                            <input type="number" id="f-students" value="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="f-speakers">Disertantes (separados por coma)</label>
+                        <input type="text" id="f-speakers" placeholder="Juan Pérez, María Sosa">
+                    </div>
+                    <div class="form-group">
+                        <label for="f-notes">Observaciones</label>
+                        <textarea id="f-notes" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel close-modal">Cancelar</button>
+                        <button type="submit" class="btn-save">Guardar Escuela</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="app.js"></script>
+</body>
+</html>
